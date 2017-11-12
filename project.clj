@@ -5,12 +5,23 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [compojure "1.6.0"]
-                 [ring/ring-jetty-adapter "1.6.3"]
-                 [environ "1.1.0"]]
+                 [ring "1.6.3"]
+                 [ring/ring-defaults "0.3.1"]
+                 [org.clojure/java.jdbc "0.7.3"]
+                 [com.layerware/hugsql "0.4.8"]
+                 [org.postgresql/postgresql "42.1.4"]
+                 [environ "1.1.0"]
+                 [selmer "1.11.3"]
+                 [deraen/sass4clj "0.3.1"]
+                 [org.webjars/bootstrap-sass "3.3.7"]]
   :min-lein-version "2.0.0"
-  :plugins [[environ/environ.lein "0.3.1"]
-            [lein-ring "0.9.7"]]
-  :ring {:handler bikecounter.web/app}
-  :hooks [environ.leiningen.hooks]
+  :plugins [[lein-ring "0.9.7"]
+            [lein-environ "1.1.0"]
+            [deraen/lein-sass4clj "0.3.1"]]
+  :sass {:target-path "resources/public/css/"
+         :source-paths ["resources/sass/"]
+         :source-map true
+         :output-style :compressed}
+  :ring {:handler bikecounter.web/site}
   :uberjar-name "bikecounter-standalone.jar"
   :profiles {:production {:env {:production true}}})
