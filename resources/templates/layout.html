@@ -5,6 +5,7 @@
       <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
       <title>🚴 Brussels Bikecounter</title>
       {% style "/css/main.css" %}
+      {% script "webjars/d3js/4.10.2/d3.js" %}
    </head>
    <body>
       <div class="bg-bike">
@@ -14,5 +15,6 @@
          {% block content %}
          {% endblock %}
       </div>
+      {% script "/js/graphs.js" %}
    </body>
 </html>

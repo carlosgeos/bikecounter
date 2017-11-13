@@ -75,3 +75,13 @@
     font-size: 6vw;
     text-shadow: 2px 2px $gray-dark;
 }
+
+
+
+.bar rect {
+  fill: steelblue;
+}
+.bar text {
+  fill: #fff;
+  font: 10px sans-serif;
+}

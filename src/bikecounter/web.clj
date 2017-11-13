@@ -1,8 +1,5 @@
 (ns bikecounter.web
   (:require [compojure.core :refer [defroutes GET PUT POST DELETE ANY]]
-            ;; [compojure.handler :refer [site]]
-            [compojure.route :as route]
-            [ring.adapter.jetty :as jetty]
             [ring.middleware.defaults :refer :all]
             [hugsql.core :as hugsql]
             [environ.core :refer [env]]
@@ -38,4 +35,4 @@
 
 
 (def site
-  (wrap-defaults app site-defaults))
+  (wrap-defaults app (assoc site-defaults :static {:resources ["public", "META-INF/resources"]})))
