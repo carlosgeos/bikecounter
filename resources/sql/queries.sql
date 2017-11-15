@@ -12,3 +12,9 @@ SELECT * FROM "Flow" ORDER BY id DESC LIMIT 1;
 UPDATE "Flow"
 SET thishour = :thishour
 WHERE id = :id;
+
+-- :name fortyeight-hours :? :*
+-- :doc selects the records for the last 48 hours.
+SELECT * FROM "Flow"
+WHERE ts > :ts AND thishour IS NOT NULL
+ORDER BY id ASC;

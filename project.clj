@@ -9,6 +9,7 @@
                  [ring/ring-defaults "0.3.1"]
                  [org.clojure/java.jdbc "0.7.3"]
                  [com.layerware/hugsql "0.4.8"]
+                 [clj-time "0.14.2"]
                  [org.postgresql/postgresql "42.1.4"]
                  [environ "1.1.0"]
                  [selmer "1.11.3"]

@@ -3,7 +3,10 @@
             [ring.middleware.defaults :refer :all]
             [hugsql.core :as hugsql]
             [environ.core :refer [env]]
-            [selmer.parser :refer :all]))
+            [selmer.parser :refer :all]
+            [clj-time.core :as t]
+            [clj-time.format :as tf]
+            [clj-time.jdbc]))
 ;; Reload (:reload) for requires could solve namespace and function definition problems.
 
 (selmer.parser/cache-off!) ;; Otherwise, layout templates are not reloaded, only the extending one
@@ -22,10 +25,16 @@
          :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
 
 
-(select-last-record db)
+;;(select-last-record db)
+
+(def data (fortyeight-hours db {:ts (t/minus (t/now) (t/hours 48))}))
+
+;;(t/now)
+
+
 
 (defroutes app
-  (GET "/" [] (render-file "templates/home.html" (select-last-record db))))
+  (GET "/" [] (render-file "templates/home.html" {:data data})))
 ;; (GET "/count-up/:to" [to]
 ;;      (str-to (Integer. to)))
 ;; (GET "/count-down/:from" [from]
