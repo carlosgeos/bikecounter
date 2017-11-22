@@ -15,7 +15,8 @@
                  [selmer "1.11.3"]
                  [deraen/sass4clj "0.3.1"]
                  [org.webjars/bootstrap-sass "3.3.7"]
-                 [org.webjars/d3js "4.10.2"]]
+                 [org.webjars.bower/d3 "3.5.17"]
+                 [org.webjars.bower/github-com-TargetProcess-tauCharts "1.1.3"]]
   :min-lein-version "2.0.0"
   :plugins [[lein-ring "0.9.7"]
             [lein-environ "1.1.0"]

@@ -1,57 +1,26 @@
 {% extends "templates/layout.html" %}
 {% block content %}
-{% for eso in data %}
-<p>{{eso.ts}}
-{% endfor %}
-<p>Bikes today: {{today}}</p>
-<p>Bikes this hour: {{parcial}}</p>
-<div id="histo" style="height:200px;"></div>
 
-<svg width="960" height="500"></svg>
+<div class="section light-purple">
+   <div class="container">
+      {% with lastrecord = data|last %}
+      <h2>Bikes today: {{ lastrecord.today}}</h2>
+      <h2>Bikes this hour: {{lastrecord.thishour}}</h2>
+      {% endwith %}
+   </div>
+</div>
 
-<div id="joder"></div>
-
-<script>
-
- var data = [
-   { date: '2014-01-01', amount: 10 },
-   { date: '2014-02-01', amount: 20 },
-   { date: '2014-03-01', amount: 40 },
-   { date: '2014-04-01', amount: 80 }
- ];
-
- var y = d3.scaleLinear()
-           .domain([0, 80]) // $0 to $80
-           .range([200, 0]); // Los pixeles reales. Desde 200 (lo más bajo en este caso) hasta 0 (lo más alto)
-
- y.domain(d3.extent(data, function(d) { return d.amount }));/* mejora, domain automatico */
-
-
- var x = d3.scaleTime()
-           .domain([
-             new Date(Date.parse('2014-01-01')),
-             new Date(Date.parse('2014-04-01'))
-           ])
-           .range([0, 300]);
-
- // x is the d3.scaleTime()
- var xAxis = d3.axisBottom(x)
-               .ticks(4); // specify the number of ticks
-
- var svg = d3.select('div#joder')
-             .append('svg')        // create an <svg> element
-             .attr('width', 300) // set its dimentions
-             .attr('height', 150);
-
- svg.append('g')            // create a <g> element
-    .attr('class', 'x axis') // specify classes
-    .call(xAxis);            // let the axis do its thing
-
-
-
-
-
-</script>
-
+<div class="section light-pink">
+   <div class="container">
+      <h2>Last 48 hours</h2>
+      <div id="bargraph"></div>
+      <script>
+       var datasource = [
+         {% for record in data %}
+         {count: {{record.thishour}}, time: '{{record.ts}}'},
+         {% endfor%}]
+      </script>
+   </div>
+</div>
 
 {% endblock %}

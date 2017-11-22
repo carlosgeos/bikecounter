@@ -76,12 +76,20 @@
     text-shadow: 2px 2px $gray-dark;
 }
 
+$azul-molon: #6f9ec8;
+$rosa-claro: #ffcfd5;
+$morao-claro: #c9a7ed;
 
-
-.bar rect {
-  fill: steelblue;
+.section {
+    text-align: center;
+    padding: 4em;
+    h2 {
+        padding: 1.5em;
+        font-weight: 900;
+    }
 }
-.bar text {
-  fill: #fff;
-  font: 10px sans-serif;
+
+.light-purple {
+    text-align: center;
+    background-color: $azul-molon;
 }
