@@ -25,13 +25,8 @@
          :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
 
 
-;;(select-last-record db)
-
-(def data (fortyeight-hours db {:ts (t/minus (t/now) (t/hours 48))}))
-
-;;(t/now)
-
-
+(def data (map #(assoc % :ts (t/hour (t/to-time-zone (:ts %) (t/time-zone-for-id "Europe/Brussels"))))
+               (fortyeight-hours db {:ts (t/minus (t/now) (t/hours 24))})))
 
 (defroutes app
   (GET "/" [] (render-file "templates/home.html" {:data data})))
