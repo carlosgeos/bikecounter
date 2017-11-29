@@ -25,8 +25,11 @@
          :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
 
 
-(def data (map #(assoc % :ts (t/hour (t/to-time-zone (:ts %) (t/time-zone-for-id "Europe/Brussels"))))
-               (fortyeight-hours db {:ts (t/minus (t/now) (t/hours 24))})))
+(try
+  (def data (map #(assoc % :ts (t/hour (t/to-time-zone (:ts %) (t/time-zone-for-id "Europe/Brussels"))))
+                 (fortyeight-hours db {:ts (t/minus (t/now) (t/hours 24))})))
+  (catch org.postgresql.util.PSQLException e
+    (println "Could not connect to database")))
 
 (defroutes app
   (GET "/" [] (render-file "templates/home.html" {:data data})))
