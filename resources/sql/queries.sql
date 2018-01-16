@@ -1,3 +1,19 @@
+/* minidoc
+
+First parameter
+:query or :? = query with a result-set (default)
+:execute or :! = any statement
+:returning-execute or :<! = support for INSERT ... RETURNING
+:insert or :i! = support for insert and jdbc .getGeneratedKeys
+
+Second parameter
+:one or :1 = one row as a hash-map
+:many or :* = many rows as a vector of hash-maps
+:affected or :n = number of rows affected (inserted/updated/deleted)
+:raw = passthrough an untouched result (default)
+
+----------- QUERIES ----------- */
+
 -- :name add-record :! :n
 -- :doc inserts a single entry in the database
 INSERT INTO "Flow" (ts, today, parcial)
@@ -13,8 +29,12 @@ UPDATE "Flow"
 SET thishour = :thishour
 WHERE id = :id;
 
--- :name fortyeight-hours :? :*
--- :doc selects the records for the last 48 hours.
+-- :name twentyfour-hours :? :*
+-- :doc selects the records for the last 24 hours.
 SELECT * FROM "Flow"
 WHERE ts > :ts AND thishour IS NOT NULL
 ORDER BY id ASC;
+
+-- :name all-records :? :*
+-- :doc everything in the db !
+SELECT * FROM "Flow";

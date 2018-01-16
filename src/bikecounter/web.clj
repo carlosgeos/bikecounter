@@ -7,13 +7,13 @@
             [clj-time.core :as t]
             [clj-time.format :as tf]
             [clj-time.jdbc]))
-;; Reload (:reload) for requires could solve namespace and function definition problems.
+;; Reload (:reload) in requires could solve namespace and function definition problems.
 
 (selmer.parser/cache-off!) ;; Otherwise, layout templates are not reloaded, only the extending one
+
 ;; import sql queries as clojure functions
 (hugsql/def-db-fns "sql/queries.sql")
 (hugsql/def-sqlvec-fns "sql/queries.sql")
-
 
 
 (def db {:dbtype     (env :db-type)
@@ -24,21 +24,15 @@
          :ssl        true
          :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
 
-
 (try
   (def data (map #(assoc % :ts (t/hour (t/to-time-zone (:ts %) (t/time-zone-for-id "Europe/Brussels"))))
-                 (fortyeight-hours db {:ts (t/minus (t/now) (t/hours 24))})))
+                 (twentyfour-hours db {:ts (t/minus (t/now) (t/hours 24))})))
   (catch org.postgresql.util.PSQLException e
     (println "Could not connect to database")))
 
+
 (defroutes app
   (GET "/" [] (render-file "templates/home.html" {:data data})))
-;; (GET "/count-up/:to" [to]
-;;      (str-to (Integer. to)))
-;; (GET "/count-down/:from" [from]
-;;      (str-from (Integer. from)))
-;; (ANY "*" []
-;;      (layout/application (slurp (io/resource "404.html")))))
 
 
 (def site
