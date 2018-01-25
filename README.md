@@ -1,39 +1,22 @@
 
-# clojure-getting-started
+# Bikecounter Rue de la Loi.
 
-A barebones Clojure app, which can easily be deployed to Heroku.  
+This application shows how many bikes go through [Rue de la Loi](https://www.google.com/maps?hl=en&q=rue+de+la+loi) every hour, every day, every month...
 
-This application support the [Getting Started with Clojure](https://devcenter.heroku.com/articles/getting-started-with-clojure) article - check it out.
+This application uses the data from [this Brussels Open Data Store](http://opendatastore.brussels/fr/dataset/bike-counting-poles).
 
 ## Running Locally
 
-Make sure you have Clojure installed.  Also, install the [Heroku Toolbelt](https://toolbelt.heroku.com/).
+Two running processes are needed.
 
 ```sh
-$ git clone https://github.com/heroku/clojure-getting-started.git
-$ cd clojure-getting-started
-$ lein repl
-user=> (require 'clojure-getting-started.web)
-user=>(def server (clojure-getting-started.web/-main))
+$ lein sass4clj auto
 ```
 
-Your app should now be running on [localhost:5000](http://localhost:5000/).
+To generate the .css files from the .scss sources. And:
 
-## Deploying to Heroku
-
-```sh
-$ heroku create
-$ git push heroku master
-$ heroku open
+```
+$ lein ring server
 ```
 
-or
-
-[![Deploy to Heroku](https://www.herokucdn.com/deploy/button.png)](https://heroku.com/deploy)
-
-## Documentation
-
-For more information about using Clojure on Heroku, see these Dev Center articles:
-
-- [Clojure on Heroku](https://devcenter.heroku.com/categories/clojure)
-
+Your app should now be running on [localhost:3000](http://localhost:5000/).
