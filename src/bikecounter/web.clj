@@ -7,8 +7,8 @@
             [clj-time.core :as t]
             [clj-time.format :as tf]
             [clj-time.jdbc]))
-;; Reload (:reload) in requires could solve namespace and function definition problems.
 
+;; Reload (:reload) in requires could solve namespace and function definition problems.
 (selmer.parser/cache-off!) ;; Otherwise, layout templates are not reloaded, only the extending one
 
 ;; import sql queries as clojure functions

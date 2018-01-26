@@ -19,14 +19,28 @@ Second parameter
 INSERT INTO "Flow" (ts, today, parcial)
 VALUES (:ts::TIMESTAMP WITH TIME ZONE, :today::INTEGER, :parcial::INTEGER);
 
+-- :name get-record :? :one
+-- :doc gets a single record with an id
+SELECT * FROM "Flow" WHERE id = :id;
+
 -- :name select-last-record :? :one
 -- :doc
 SELECT * FROM "Flow" ORDER BY id DESC LIMIT 1;
+
+-- :name get-null-records :? :*
+-- :doc
+SELECT * FROM "Flow" WHERE thishour = 0 ORDER BY id ASC;
 
 -- :name amend-hourly :! :n
 -- :doc updates the last row with the real value of bikers
 UPDATE "Flow"
 SET thishour = :thishour
+WHERE id = :id;
+
+-- :name update-record :! :n
+-- :doc updates a single record with new info
+UPDATE "Flow"
+SET thishour = :thishour, parcial = :parcial, today = :today
 WHERE id = :id;
 
 -- :name twentyfour-hours :? :*
