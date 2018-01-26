@@ -2,7 +2,7 @@
   (:require [clojure.java.jdbc :as j]
             [environ.core :refer [env]]
             [clj-http.client :as client]
-            [clojure.data.csv :as csv]
+            [cheshire.core :as json]
             [hugsql.core :as hugsql]
             [clj-time.core :as t]
             [clj-time.format :as tf]
@@ -25,33 +25,21 @@
          :ssl        true
          :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
 
-(def RESOURCE_URL "http://data-mobility.brussels/geoserver/bm_bike/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=bm_bike:rt_counting&outputFormat=csv")
+
+(def RESOURCE_URL "http://data-mobility.brussels/geoserver/bm_bike/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=bm_bike:rt_counting&outputFormat=json")
 
 
-(defn csv-data-to-maps
-  "Helper function to transform CSV vectors and lists to a map"
-  [csv-data]
-  (map zipmap
-       (->> (first csv-data) ;; First row is the header
-            (map keyword) ;; Drop if you want string keys instead
-            repeat)
-       (rest csv-data)))
+(def raw-data
+  (-> (json/parse-string (:body (client/get RESOURCE_URL)))
+      (get "features")
+      first
+      (get "properties")))
 
 
-(def raw-data (-> (client/get RESOURCE_URL)
-                  :body
-                  csv/read-csv
-                  csv-data-to-maps
-                  first))               ;choose first since there is
-                                        ;only 1 bike counter in
-                                        ;brussels right now
-
-
-(def bikers-currently {:ts      (as-> (get raw-data :cnt_date) <>
-                                  (tf/parse (tf/formatter :date-hour-minute-second) <> )
-                                  (t/from-time-zone <> (t/time-zone-for-id "Europe/Brussels")))
-                       :today   (read-string (get raw-data :day_cnt))
-                       :parcial (read-string (get raw-data :hour_cnt))})
+(def bikers-currently {:ts      (tf/parse (tf/formatter :date-time-no-ms)
+                                          (raw-data "cnt_date"))
+                       :today   (raw-data "day_cnt")
+                       :parcial (raw-data "hour_cnt")})
 
 
 (defn get-last-record

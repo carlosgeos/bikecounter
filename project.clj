@@ -11,7 +11,7 @@
                  [org.clojure/java.jdbc "0.7.3"]
                  [com.layerware/hugsql "0.4.8"]
                  [org.postgresql/postgresql "42.1.4"]
-                 [org.clojure/data.csv "0.1.4"]
+                 [cheshire "5.8.0"]
                  [clj-http "3.7.0"]
                  [clj-time "0.14.2"]
                  [selmer "1.11.3"]
