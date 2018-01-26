@@ -6,8 +6,8 @@
             [hugsql.core :as hugsql]
             [clj-time.core :as t]
             [clj-time.format :as tf]
-            [clj-time.jdbc]))           ;allows sending DateTime objects to DB
-
+            [clj-time.jdbc])    ;allows sending DateTime objects to DB
+  (:import (com.sendgrid SendGrid Email Content Mail Request Method)))
 
 ;; The path is relative to the classpath (not proj dir!), so "src" is
 ;; not included in the path.  The same would apply if the sql was
@@ -15,6 +15,26 @@
 ;; with Clojure file paths for hyphenated namespaces
 (hugsql/def-db-fns "sql/queries.sql")
 (hugsql/def-sqlvec-fns "sql/queries.sql")
+
+
+
+(defn notify-of-failure
+  "Sends an email using SendGrid's API, saying that something went wrong
+  with the bike counter resource"
+  []
+
+  (def sg (SendGrid. (env :sendgrid-api-key)))
+  (def email (Mail. (Email. "bikecounter@herokuapps.com") ;from
+                    "[bikecounter] Failure notification"  ;subject
+                    (Email. (env :email))                 ;to
+                    (Content. "text/plain" (str "Cron job failed to fetch the remote GeoJSON resource on "
+                                                (tf/unparse (tf/formatter :rfc822) (t/now))))))
+
+  (def req (Request.))
+  (.setMethod req Method/POST)
+  (.setEndpoint req "mail/send")
+  (.setBody req (.build email))
+  (.api sg req))
 
 
 (def db {:dbtype     (env :db-type)
@@ -30,11 +50,16 @@
 
 
 (def raw-data
-  (-> (json/parse-string (:body (client/get RESOURCE_URL)))
-      (get "features")
-      first
-      (get "properties")))
+  (try
+    (-> (json/parse-string (:body (client/get RESOURCE_URL)))
+        (get "features")
+        first
+        (get "properties"))
+    (catch Exception e
+      (notify-of-failure))))
 
+;; If the above fails, then everything fails since we can't continue
+;; with a SendGrid Response as raw-data.
 
 (def bikers-currently {:ts      (tf/parse (tf/formatter :date-time-no-ms)
                                           (raw-data "cnt_date"))

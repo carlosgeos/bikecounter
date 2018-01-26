@@ -12,6 +12,7 @@
                  [com.layerware/hugsql "0.4.8"]
                  [org.postgresql/postgresql "42.1.4"]
                  [cheshire "5.8.0"]
+                 [com.sendgrid/sendgrid-java "4.1.2"]
                  [clj-http "3.7.0"]
                  [clj-time "0.14.2"]
                  [selmer "1.11.3"]
