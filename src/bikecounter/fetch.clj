@@ -67,23 +67,12 @@
                        :parcial (raw-data "hour_cnt")})
 
 
-(defn get-last-record
-  "Gets the last record from the database. It transforms the timestamp
-  into Europe/Brussels time, since clj-time coerces the DateTime to be
-  in UTC for some reason"
-  []
-  (let [record (select-last-record db)]
-    (if (some? record)
-      (update record :ts t/to-time-zone ,,, (t/time-zone-for-id "Europe/Brussels"))
-      nil)))
-
-
 (defn insert-record-policy
   "Very simple, if record does not exist already, insert it, otherwise
   do nothing. Times are in UTC (timezone +0). Brussels is CEST (+2) in
   summer and CET (+1) in november etc."
   []
-  (let [last-record  (get-last-record)
+  (let [last-record  (select-last-record db)
         last-time    (:ts last-record)
         current-time (bikers-currently :ts)]
     ;; Insert normal records...
@@ -92,9 +81,10 @@
       (add-record db bikers-currently)
       "Nothing to do")
     ;; Amend hourly. (small correction to account for bikers who pass
-    ;; in the last 5-10 mins of the hour). At midnight the counter is
-    ;; reset to 0 so those bikers are lost, we can only update the
-    ;; column with the last value seen (second clause)
+    ;; in the last 5 mins of the hour) - first clause. Also, at
+    ;; midnight the counter is reset to 0 so those bikers are lost, we
+    ;; can only update the column with the last value seen (second
+    ;; clause)
     (when (some? last-time)              ;database is not empty
       (def realvalue (cond
                        ;; First clause
@@ -104,12 +94,13 @@
                            (- ,,, (:parcial bikers-currently))
                            (+ ,,, (:parcial last-record)))
                        ;; Second clause
-                       (and (= (.getHourOfDay last-time) 23)
-                            (= (.getHourOfDay current-time) 0))
+                       (and (= (.getHourOfDay last-time) 22)
+                            (= (.getHourOfDay current-time) 23))
                        (:parcial last-record)))
 
       (amend-hourly db {:id       (:id last-record)
                         :thishour realvalue}))))
+
 
 
 (defn -main
