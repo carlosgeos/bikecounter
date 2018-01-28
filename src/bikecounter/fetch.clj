@@ -81,22 +81,22 @@
       (add-record db bikers-currently)
       "Nothing to do")
     ;; Amend hourly. (small correction to account for bikers who pass
-    ;; in the last 5 mins of the hour) - first clause. Also, at
+    ;; in the last 5 mins of the hour) - second clause. Also, at
     ;; midnight the counter is reset to 0 so those bikers are lost, we
-    ;; can only update the column with the last value seen (second
+    ;; can only update the column with the last value seen (first
     ;; clause)
     (when (some? last-time)              ;database is not empty
       (def realvalue (cond
-                       ;; First clause
+                       ;; First clause. Order is important
+                       (and (= (.getHourOfDay last-time) 22)
+                            (= (.getHourOfDay current-time) 23))
+                       (:parcial last-record)
+                       ;; Second clause
                        (= (inc (.getHourOfDay last-time)) (.getHourOfDay current-time)) ;its the next hour
                        (-> (:today bikers-currently)
                            (- ,,, (:today last-record))
                            (- ,,, (:parcial bikers-currently))
-                           (+ ,,, (:parcial last-record)))
-                       ;; Second clause
-                       (and (= (.getHourOfDay last-time) 22)
-                            (= (.getHourOfDay current-time) 23))
-                       (:parcial last-record)))
+                           (+ ,,, (:parcial last-record)))))
 
       (amend-hourly db {:id       (:id last-record)
                         :thishour realvalue}))))
