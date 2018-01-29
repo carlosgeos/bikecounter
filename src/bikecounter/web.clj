@@ -1,6 +1,7 @@
 (ns bikecounter.web
-  (:require [compojure.core :refer [defroutes GET PUT POST DELETE ANY]]
-            [ring.middleware.defaults :refer :all]
+  (:require [compojure.api.sweet :refer :all] ;collection of a lot of stuff
+            [compojure.route :as route]
+            [ring.util.http-response :refer :all] ;HTTP statuses and ring responses
             [hugsql.core :as hugsql]
             [environ.core :refer [env]]
             [selmer.parser :refer :all]
@@ -25,15 +26,30 @@
          :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
 
 (try
-  (def data (map #(assoc % :ts (t/hour (t/to-time-zone (:ts %) (t/time-zone-for-id "Europe/Brussels"))))
-                 (twentyfour-hours db {:ts (t/minus (t/now) (t/hours 24))})))
+  (def data (twentyfour-hours db {:ts (t/minus (t/now) (t/hours 24))}))
   (catch org.postgresql.util.PSQLException e
     (println "Could not connect to database")))
 
 
-(defroutes app
-  (GET "/" [] (render-file "templates/home.html" {:data data})))
+(def api-routes
+  ;; defapi -> deprecated !!
+  (api
+   ;; (swagger-routes) also works if using basic config
+   {:swagger {:ui "/swagger"
+              :spec "/swagger.json"
+              :ring-swagger {:ignore-missing-mappings? true}
+              :data {:info {:title "BikeCounter-Loi"}
+                     :tags [{:name "api"}]}}}
+   (context "/api" []
+     :tags ["API"]
+     (GET "/data" [] (ok data))
+     (GET "/hello/:who" [who] (ok {:answer (str "Hello, " who)})))))
 
 
-(def site
-  (wrap-defaults app (assoc site-defaults :static {:resources ["public", "META-INF/resources"]})))
+(defroutes site-routes
+  (route/resources "/")                 ;makes the "resources/public"
+                                        ;folder available at "/"
+  (GET "/" [] (file-response "/index.html" {:root "resources/public"})))
+
+
+(def app (routes api-routes site-routes)) ;combine the 2 ring handlers

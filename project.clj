@@ -4,10 +4,10 @@
   :license {:name "Eclipse Public License v1.0"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.9.0"]
-                 [compojure "1.6.0"]
-                 [ring "1.6.3"]
+                 [metosin/compojure-api "2.0.0-alpha18"] ;includes compojure and ring
+                 [metosin/ring-http-response "0.9.0"]
                  [environ "1.1.0"]
-                 [ring/ring-defaults "0.3.1"]
+                 ;; [ring/ring-defaults "0.3.1"]
                  [org.clojure/java.jdbc "0.7.3"]
                  [com.layerware/hugsql "0.4.8"]
                  [org.postgresql/postgresql "42.1.4"]
@@ -28,6 +28,6 @@
          :source-paths ["resources/sass/"]
          :source-map true
          :output-style :compressed}
-  :ring {:handler bikecounter.web/site}
+  :ring {:handler bikecounter.web/app}
   :uberjar-name "bikecounter-standalone.jar"
   :profiles {:production {:env {:production true}}})
