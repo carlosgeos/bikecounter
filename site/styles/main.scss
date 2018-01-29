@@ -1,5 +1,56 @@
-$heading-color: hotpink;
+/* @import "~pure/build/pure-min.css"; */
 
-h1 {
-  color: $heading-color;
+$gray-dark: #444;
+$azul-molon: #6f9ec8;
+$rosa-claro: #ffcfd5;
+$morao-claro: #c9a7ed;
+
+@font-face {
+        font-family: "GrotesqueBold";
+        src: url("~Fonts/grotesque/Brandon_bld.otf") format("opentype");}
+
+.bg-bike {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-image: url('~Images/bike.jpeg'); /* "~" makes it resolve like a module, and Images is an alias for
+                                                   /site/img/ */
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center top;
+}
+
+.bg-title {
+    color: white;
+    font-family: "GrotesqueBold";
+    font-size: 6vw;
+    text-shadow: 2px 2px $gray-dark;
+    font-weight: 500;
+}
+
+.section {
+    text-align: center;
+    padding: 4em;
+    h2 {
+        padding: 1.5em;
+        font-weight: 900;
+        font-family: Trebuchet MS, sans-serif;
+    }
+    &.bar-graph {
+        height: 40em;
+        margin-bottom: 10em;
+    }
+}
+
+.light-purple {
+    text-align: center;
+    background-color: $azul-molon;
+}
+
+.footer {
+    background-color: $gray-dark;
+    text-align: center;
+    padding: 2em;
+    color: white;
 }
