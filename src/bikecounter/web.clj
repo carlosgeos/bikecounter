@@ -4,13 +4,11 @@
             [ring.util.http-response :refer :all] ;HTTP statuses and ring responses
             [hugsql.core :as hugsql]
             [environ.core :refer [env]]
-            [selmer.parser :refer :all]
             [clj-time.core :as t]
             [clj-time.format :as tf]
             [clj-time.jdbc]))
-
-;; Reload (:reload) in requires could solve namespace and function definition problems.
-(selmer.parser/cache-off!) ;; Otherwise, layout templates are not reloaded, only the extending one
+;; Reload (:reload) in requires could solve namespace and function
+;; definition problems.
 
 ;; import sql queries as clojure functions
 (hugsql/def-db-fns "sql/queries.sql")

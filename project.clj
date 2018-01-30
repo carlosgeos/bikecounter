@@ -14,20 +14,10 @@
                  [cheshire "5.8.0"]
                  [com.sendgrid/sendgrid-java "4.1.2"]
                  [clj-http "3.7.0"]
-                 [clj-time "0.14.2"]
-                 [selmer "1.11.3"]
-                 [deraen/sass4clj "0.3.1"]
-                 [org.webjars/bootstrap-sass "3.3.7"]
-                 [org.webjars.bower/d3 "3.5.17"]
-                 [org.webjars.bower/github-com-TargetProcess-tauCharts "1.1.3"]]
+                 [clj-time "0.14.2"]]
   :min-lein-version "2.0.0"
   :plugins [[lein-ring "0.9.7"]
-            [lein-environ "1.1.0"]
-            [deraen/lein-sass4clj "0.3.1"]]
-  :sass {:target-path "resources/public/css/"
-         :source-paths ["resources/sass/"]
-         :source-map true
-         :output-style :compressed}
+            [lein-environ "1.1.0"]]
   :ring {:handler bikecounter.web/app}
   :uberjar-name "bikecounter-standalone.jar"
   :profiles {:production {:env {:production true}}})

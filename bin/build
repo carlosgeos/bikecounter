@@ -1,1 +1,1 @@
-lein sass4clj once && lein ring uberjar
+lein ring uberjar
