@@ -1,1 +1,1 @@
-lein ring uberjar
+npm run build && lein ring uberjar

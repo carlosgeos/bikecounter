@@ -49,6 +49,13 @@ SELECT * FROM "Flow"
 WHERE ts > :ts AND thishour IS NOT NULL
 ORDER BY id ASC;
 
+-- :name get-bikes-from-to :? :*
+-- :doc gets all the records in a certain time period
+SELECT * FROM "Flow"
+WHERE ts BETWEEN :start_time AND :end_time
+      AND thishour IS NOT NULL
+ORDER BY ts ASC;
+
 -- :name all-records :? :*
 -- :doc everything in the db !
 SELECT * FROM "Flow";

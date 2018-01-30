@@ -6,9 +6,9 @@ This application shows how many bikes go through [Rue de la Loi](https://www.goo
 
 This application uses the data from [this Brussels Open Data Store](http://opendatastore.brussels/fr/dataset/bike-counting-poles).
 
-The GeoJSON resource works just fine.
+The GeoJSON resource works just fine. The CSV does not give the time in UTC (minor disadvantage).
 
-## Fetching and saving data from the online counter
+## Fetching and saving data from the online counter to populate a database
 
 Have the environment variables:
 
@@ -34,7 +34,9 @@ pointing to the database and:
 $ lein run -m bikecounter.fetch
 ```
 
-## Counter problems
+This is currently done using a cron job.
+
+## Counter/public API problems
 
 ### Lack of precision in the counter
 
@@ -46,16 +48,27 @@ considering the following hour already. This is accounted for
 
 ## Running the client locally
 
-Two running processes are needed.
+It is only a static HTML file generated with Webpack
+
 
 ```sh
-$ lein sass4clj auto
+$ npm i
 ```
 
-To generate the .css files from the .scss sources. And:
+Then, simply run
+
+```sh
+$ npx webpack-dev-server
+```
+
+And the app should now be running at [http://localhost:8080](http://localhost:8080/).
+
+## Running the backend server (Swagger API endpoints)
+
+```sh
+$ lein install
+```
 
 ```sh
 $ lein ring server
 ```
-
-Your app should now be running at [http://localhost:3000](http://localhost:3000/).

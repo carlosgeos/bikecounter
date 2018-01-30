@@ -2,11 +2,14 @@
   (:require [compojure.api.sweet :refer :all] ;collection of a lot of stuff
             [compojure.route :as route]
             [ring.util.http-response :refer :all] ;HTTP statuses and ring responses
+            [ring.middleware.cors :refer [wrap-cors]]
             [hugsql.core :as hugsql]
             [environ.core :refer [env]]
             [clj-time.core :as t]
             [clj-time.format :as tf]
-            [clj-time.jdbc]))
+            [clj-time.jdbc])
+  (:import (java.util Date)
+           (org.joda.time LocalDate DateTime)))
 ;; Reload (:reload) in requires could solve namespace and function
 ;; definition problems.
 
@@ -29,6 +32,7 @@
     (println "Could not connect to database")))
 
 
+
 (def api-routes
   ;; defapi -> deprecated !!
   (api
@@ -40,8 +44,11 @@
                      :tags [{:name "api"}]}}}
    (context "/api" []
      :tags ["API"]
-     (GET "/data" [] (ok data))
-     (GET "/hello/:who" [who] (ok {:answer (str "Hello, " who)})))))
+     (GET "/bikes" []
+       :query-params [start_time :- DateTime, end_time :- DateTime]
+       (ok (get-bikes-from-to db {:start_time start_time
+                                  :end_time end_time})))
+     (GET "/last" [] (ok data)))))
 
 
 (defroutes site-routes
@@ -50,4 +57,6 @@
   (GET "/" [] (file-response "/index.html" {:root "resources/public"})))
 
 
-(def app (routes api-routes site-routes)) ;combine the 2 ring handlers
+(def app (wrap-cors (routes api-routes site-routes)
+                    :access-control-allow-origin [#"http://localhost:8080"] ;webpack development server
+                    :access-control-allow-methods [:get])) ;combine the 2 ring handlers

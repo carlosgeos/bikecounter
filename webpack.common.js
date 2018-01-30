@@ -1,7 +1,8 @@
-var path = require('path');
-var webpack = require('webpack');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
-const ExtractTextPlugin = require("extract-text-webpack-plugin");
+const path = require('path');
+const webpack = require('webpack');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CleanWebpackPlugin = require('clean-webpack-plugin');
+
 
 module.exports = {
   entry: './site/scripts/index.js',
@@ -14,26 +15,12 @@ module.exports = {
       {
         test: /\.jsx?$/,
         include: [path.resolve(__dirname, "site/scripts")],
+        loader: "babel-loader",
+        options: {
+          presets: ["es2015"]
+          /* newer option -> use babel-preset-env */
+        }
         /* include babel-loader and preset options for ES2015 if needed ! */
-      },
-      /* {
-         test: /\.css$/,
-         use: [ 'style-loader', 'css-loader' ]
-       * },*/
-      {
-        test: /\.s?css$/,
-        use: ExtractTextPlugin.extract({
-          use: [
-            {
-              loader: "css-loader", // translates CSS into CommonJS
-            },
-            {
-              loader: "sass-loader", // compiles Sass to CSS
-              options: {/* also use "~" in prefix for node_modules stylesheets */
-                includePaths: [path.resolve(__dirname, "site/styles")]
-              }
-            }]
-        })
       },
       {
         test: /\.(png|jpg|jpeg|gif|svg)$/,
@@ -45,12 +32,9 @@ module.exports = {
       },
       {
         test: /\.(eot|otf|ttf|woff|woff2)$/,
-        loader: 'url-loader',
-        options: {
-          limit: 4096,
-          name: 'fonts/[hash]-[name].[ext]',
-        }
-      }]
+        loader: 'file-loader',
+      },
+    ]
   },
   /* resolve makes it easier for JS files to look for style files:
      import css from "Styles/filename.scss" and for css files to find
@@ -63,16 +47,11 @@ module.exports = {
     }
   },
   plugins: [
+    new CleanWebpackPlugin([path.resolve(__dirname, 'resources/public')]),
     new HtmlWebpackPlugin({
       title: 'Brussels Bikecounter',
       template: 'site/index.html',
       filename: 'index.html'
     }),
-    new ExtractTextPlugin({
-      filename: "[contenthash]-main.css",
-      /* disable: process.env.NODE_ENV === "development"*/
-    }),
-    new webpack.optimize.OccurrenceOrderPlugin(),
-    new webpack.optimize.UglifyJsPlugin(),
   ]
 };
