@@ -1,6 +1,6 @@
 # Bikecounter Rue de la Loi.
 
-This application shows how many bikes go through [Rue de la Loi](https://www.google.com/maps?hl=en&q=rue+de+la+loi) every hour, every day, every month...
+This application contains the Swagger API for [bikecounter-client](https://github.com/carlosgeos/bikecounter-client). It is also supposed to fetch data every 10 minutes from the Brussels Open Datastore (using cron, Heroku scheduler etc).
 
 ## About Bruxelles Mobilité Open Data
 
@@ -34,8 +34,6 @@ pointing to the database and:
 $ lein run -m bikecounter.fetch
 ```
 
-This is currently done using a cron job.
-
 ## Counter/public API problems
 
 ### Lack of precision in the counter
@@ -46,29 +44,19 @@ considering the following hour already. This is accounted for
 (repaired) in the function
 `bikecounter.repair/repair-null-records`.
 
-## Running the client locally
 
-It is only a static HTML file generated with Webpack
-
-
-```sh
-$ npm i
-```
-
-Then, simply run
-
-```sh
-$ npx webpack-dev-server
-```
-
-And the app should now be running at [http://localhost:8080](http://localhost:8080/).
-
-## Running the backend server (Swagger API endpoints)
-
-```sh
-$ lein install
-```
+## Running
 
 ```sh
 $ lein ring server
 ```
+
+It will install dependencies automatically and start the server on port 3000.
+
+Run:
+
+```sh
+$ lein ring uberjar
+```
+
+To compile and deploy etc.

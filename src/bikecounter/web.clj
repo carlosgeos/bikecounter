@@ -32,31 +32,24 @@
     (println "Could not connect to database")))
 
 
-
 (def api-routes
   ;; defapi -> deprecated !!
   (api
    ;; (swagger-routes) also works if using basic config
-   {:swagger {:ui "/swagger"
+   {:swagger {:ui "/"
               :spec "/swagger.json"
               :ring-swagger {:ignore-missing-mappings? true}
               :data {:info {:title "BikeCounter-Loi"}
                      :tags [{:name "api"}]}}}
    (context "/api" []
-     :tags ["API"]
-     (GET "/bikes" []
-       :query-params [start_time :- DateTime, end_time :- DateTime]
-       (ok (get-bikes-from-to db {:start_time start_time
-                                  :end_time end_time})))
-     (GET "/last" [] (ok data)))))
+            :tags ["API"]
+            (GET "/bikes" []
+                 :query-params [start_time :- DateTime, end_time :- DateTime]
+                 (ok (get-bikes-from-to db {:start_time start_time
+                                            :end_time end_time})))
+            (GET "/last" [] (ok data)))))
 
 
-(defroutes site-routes
-  (route/resources "/")                 ;makes the "resources/public"
-                                        ;folder available at "/"
-  (GET "/" [] (file-response "/index.html" {:root "resources/public"})))
-
-
-(def app (wrap-cors (routes api-routes site-routes)
+(def app (wrap-cors api-routes
                     :access-control-allow-origin [#"http://localhost:8080"] ;webpack development server
                     :access-control-allow-methods [:get])) ;combine the 2 ring handlers
