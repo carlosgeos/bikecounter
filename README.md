@@ -2,6 +2,8 @@
 
 This application contains the Swagger API for [bikecounter-client](https://github.com/carlosgeos/bikecounter-client). It is also supposed to fetch data every 10 minutes from the Brussels Open Datastore (using cron, Heroku scheduler etc).
 
+Swagger API link: [http://bikecounter-env.p2knwkswfj.eu-west-1.elasticbeanstalk.com/index.html](http://bikecounter-env.p2knwkswfj.eu-west-1.elasticbeanstalk.com/index.html)
+
 ## About Bruxelles Mobilité Open Data
 
 This application uses the data from [this Brussels Open Data Store](http://opendatastore.brussels/fr/dataset/bike-counting-poles).
