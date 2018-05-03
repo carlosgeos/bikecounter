@@ -16,13 +16,13 @@
 (hugsql/def-db-fns "sql/queries.sql")
 (hugsql/def-sqlvec-fns "sql/queries.sql")
 
+(def CORRECT_ID "rt_counting.1")
 
 
 (defn notify-of-failure
   "Sends an email using SendGrid's API, saying that something went wrong
   with the bike counter resource"
   []
-
   (def sg (SendGrid. (env :sendgrid-api-key)))
   (def email (Mail. (Email. "bikecounter@herokuapps.com") ;from
                     "[bikecounter] Failure notification"  ;subject
@@ -51,10 +51,11 @@
 
 (def raw-data
   (try
-    (-> (json/parse-string (:body (client/get RESOURCE_URL)))
-        (get "features")
-        first
-        (get "properties"))
+    (as-> (json/parse-string (:body (client/get RESOURCE_URL))) obj
+      (get obj "features")
+      (filter #(= (get % "id") CORRECT_ID) obj)
+      (first obj)
+      (get obj "properties"))
     (catch Exception e
       (notify-of-failure))))
 
@@ -80,11 +81,11 @@
             (not= last-time current-time))
       (add-record db bikers-currently)
       "Nothing to do")
-    ;; Amend hourly. (small correction to account for bikers who pass
-    ;; in the last 5 mins of the hour) - second clause. Also, at
-    ;; midnight the counter is reset to 0 so those bikers are lost, we
-    ;; can only update the column with the last value seen (first
-    ;; clause)
+    ;; Amend hourly. At midnight the counter is reset to 0 so those
+    ;; bikers are lost, we can only update the column with the last value
+    ;; seen (first clause). Also, there is a small correction to account
+    ;; for bikers who pass in the last 5 mins of the hour - second
+    ;; clause.
     (when (some? last-time)              ;database is not empty
       (def realvalue (cond
                        ;; First clause. Order is important
@@ -94,8 +95,7 @@
                        ;; Second clause
                        (= (inc (.getHourOfDay last-time)) (.getHourOfDay current-time)) ;its the next hour
                        (-> (:today bikers-currently)
-                           (- ,,, (:today last-record))
-                           (- ,,, (:parcial bikers-currently))
+                           (- ,,, (:today last-record) (:parcial bikers-currently))
                            (+ ,,, (:parcial last-record)))))
 
       (amend-hourly db {:id       (:id last-record)
