@@ -16,7 +16,7 @@
 (hugsql/def-db-fns "sql/queries.sql")
 (hugsql/def-sqlvec-fns "sql/queries.sql")
 
-(def CORRECT_ID "rt_counting.1")
+(def CORRECT_ID 3)                      ;API bs
 
 
 (defn notify-of-failure
@@ -53,17 +53,19 @@
   (try
     (as-> (json/parse-string (:body (client/get RESOURCE_URL))) obj
       (get obj "features")
-      (filter #(= (get % "id") CORRECT_ID) obj)
+      (filter #(= (get (get % "properties") "id") CORRECT_ID) obj)
       (first obj)
       (get obj "properties"))
     (catch Exception e
       (notify-of-failure))))
 
+
 ;; If the above fails, then everything fails since we can't continue
 ;; with a SendGrid Response as raw-data.
 
+
 (def bikers-currently {:ts      (tf/parse (tf/formatter :date-time-no-ms)
-                                          (raw-data "cnt_date"))
+                                          (raw-data "cnt_time"))
                        :today   (raw-data "day_cnt")
                        :parcial (raw-data "hour_cnt")})
 

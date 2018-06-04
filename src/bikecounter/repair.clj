@@ -25,7 +25,7 @@
   partial in the previous record, plus the difference during the whole
   day between the record and the previous record."
   [arecord]
-  (let [previous-record (get-record db {:id (- (:id arecord) 1)})
+  (let [previous-record (get-record db {:id (dec (:id arecord))})
         actual-number (+ (:parcial previous-record) (- (:today arecord) (:today previous-record)))]
     (update-record db {:id (:id arecord)
                        :today (:today arecord)
@@ -36,7 +36,7 @@
 (defn repair-null-records-next-day-fix
   "When the counter fails at 23:59h. Just take the previous info"
   [arecord]
-  (let [previous-record (get-record db {:id (- (:id arecord) 1)})]
+  (let [previous-record (get-record db {:id (dec (:id arecord))})]
     (update-record db {:id (:id arecord)
                        :today (:today previous-record)
                        :parcial (:parcial previous-record)
@@ -49,9 +49,9 @@
   there have been 0 bikes that hour and update :thishour with a
   0!). This function fixes this."
   []
-  (doseq [arecord (get-null-records db)]
+  (doseq [arecord (get-null-or-negative-records db)]
     (case (:today arecord)
-      0 (repair-null-records-next-day-fix arecord) ;at 23:59, today indicates 0
+      (or 0 (< 0)) (repair-null-records-next-day-fix arecord) ;at 23:59, today indicates 0
       (repair-null-records-normal-fix arecord))))  ;every other hour with 59 minutes
 
 

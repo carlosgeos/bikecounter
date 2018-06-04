@@ -27,9 +27,9 @@ SELECT * FROM "Flow" WHERE id = :id;
 -- :doc
 SELECT * FROM "Flow" ORDER BY id DESC LIMIT 1;
 
--- :name get-null-records :? :*
+-- :name get-null-or-negative-records :? :*
 -- :doc
-SELECT * FROM "Flow" WHERE thishour = 0 ORDER BY id ASC;
+SELECT * FROM "Flow" WHERE thishour <= 0 ORDER BY id ASC;
 
 -- :name amend-hourly :! :n
 -- :doc updates the last row with the real value of bikers
