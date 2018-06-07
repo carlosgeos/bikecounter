@@ -6,7 +6,8 @@
             [hugsql.core :as hugsql]
             [clj-time.core :as t]
             [clj-time.format :as tf]
-            [clj-time.jdbc])    ;allows sending DateTime objects to DB
+            [clj-time.jdbc]     ;allows sending DateTime objects to DB
+            [bikecounter.common :refer [db]])
   (:import (com.sendgrid SendGrid Email Content Mail Request Method)))
 
 ;; The path is relative to the classpath (not proj dir!), so "src" is
@@ -18,6 +19,7 @@
 
 (def CORRECT_ID 3)                      ;API bs
 
+(def RESOURCE_URL "http://data-mobility.brussels/geoserver/bm_bike/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=bm_bike:rt_counting&outputFormat=json")
 
 (defn notify-of-failure
   "Sends an email using SendGrid's API, saying that something went wrong
@@ -36,17 +38,6 @@
   (.setBody req (.build email))
   (.api sg req))
 
-
-(def db {:dbtype     (env :db-type)
-         :dbname     (env :db-name)
-         :host       (env :db-host)
-         :user       (env :db-user)
-         :password   (env :db-password)
-         :ssl        true
-         :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
-
-
-(def RESOURCE_URL "http://data-mobility.brussels/geoserver/bm_bike/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=bm_bike:rt_counting&outputFormat=json")
 
 
 (def raw-data

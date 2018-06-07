@@ -8,7 +8,8 @@
             [environ.core :refer [env]]
             [clj-time.core :as t]
             [clj-time.format :as tf]
-            [clj-time.jdbc])
+            [clj-time.jdbc]
+            [bikecounter.common :refer [db]])
   (:import (java.util Date)
            (org.joda.time LocalDate DateTime)))
 ;; Reload (:reload) in requires could solve namespace and function
@@ -17,15 +18,6 @@
 ;; import sql queries as clojure functions
 (hugsql/def-db-fns "sql/queries.sql")
 (hugsql/def-sqlvec-fns "sql/queries.sql")
-
-
-(def db {:dbtype     (env :db-type)
-         :dbname     (env :db-name)
-         :host       (env :db-host)
-         :user       (env :db-user)
-         :password   (env :db-password)
-         :ssl        true
-         :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
 
 (try
   (def data (twentyfour-hours db {:ts (t/minus (t/now) (t/hours 24))}))

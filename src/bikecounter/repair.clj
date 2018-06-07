@@ -1,7 +1,8 @@
 (ns bikecounter.repair
   (:require [clojure.java.jdbc :as j]
             [environ.core :refer [env]]
-            [hugsql.core :as hugsql]))
+            [hugsql.core :as hugsql]
+            [bikecounter.common :refer [db]]))
 
 ;; The path is relative to the classpath (not proj dir!), so "src" is
 ;; not included in the path.  The same would apply if the sql was
@@ -9,15 +10,6 @@
 ;; with Clojure file paths for hyphenated namespaces
 (hugsql/def-db-fns "sql/queries.sql")
 (hugsql/def-sqlvec-fns "sql/queries.sql")
-
-
-(def db {:dbtype     (env :db-type)
-         :dbname     (env :db-name)
-         :host       (env :db-host)
-         :user       (env :db-user)
-         :password   (env :db-password)
-         :ssl        true
-         :sslfactory "org.postgresql.ssl.NonValidatingFactory"})
 
 
 (defn repair-null-records-normal-fix
