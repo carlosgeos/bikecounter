@@ -1,67 +1,39 @@
 (ns bikecounter.fetch
   (:gen-class
    :methods [^:static [handler [String] String]])
-  (:require [bikecounter.common :refer [db]]
+  (:require [bikecounter.common :refer [db notify RESOURCE_URL]]
             [cheshire.core :as json]
             [clj-http.client :as requests]
-            [clojure.java.jdbc :as j]
             [clojure.spec.alpha :as s]
             [environ.core :refer [env]]
-            [hugsql.core :as hugsql])
-  (:import [com.sendgrid SendGrid Request Method]
-           com.sendgrid.helpers.mail.Mail
-           [com.sendgrid.helpers.mail.objects Content Email]))
-
-;; ;; The path is relative to the classpath (not proj dir!), so "src" is
-;; ;; not included in the path.  The same would apply if the sql was
-;; ;; under "resources/..."  Also, notice the under_scored path compliant
-;; ;; with Clojure file paths for hyphenated namespaces
-(hugsql/def-db-fns "sql/queries.sql")
-(hugsql/def-sqlvec-fns "sql/queries.sql")
-
-(def RESOURCE_URL "http://data-mobility.brussels/geoserver/bm_bike/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=bm_bike:rt_counting&outputFormat=json")
-
-(defn notify-of-failure
-  "Sends an email using SendGrid's API, saying that something went wrong
-  with the bike counter resource"
-  []
-  (def sg (SendGrid. (env :sendgrid-api-key)))
-  (def email (Mail. (Email. "bikecounter@lambda.com") ;from
-                    "[bikecounter] Failure notification"  ;subject
-                    (Email. (env :email))                 ;to
-                    (Content. "text/plain" "Cron job failed to fetch the remote GeoJSON resource")))
-
-  (def req (Request.))
-  (.setMethod req Method/POST)
-  (.setEndpoint req "mail/send")
-  (.setBody req (.build email))
-  (.api sg req))
-
+            [java-time :as t]
+            [somnium.congomongo :as m]))
 
 (defn fetch-data
   ""
   []
-  (json/parse-string (:body (requests/get RESOURCE_URL)) true))
+  (try
+    (json/parse-string (:body (requests/get RESOURCE_URL)) true)
+    (catch Exception e
+      (notify "Could not fetch resource. API down ?")
+      (str "Caught exception: " (.getMessage e)))))
 
-(def result (fetch-data))
-
-(s/def :property/id int?)
-(s/def ::properties
-  (s/keys :req-un [::road_en ::hour_cnt ::day_cnt ::year_cnt ::cnt_time]
-          :opt-un [::device_name :property/id]))
-(s/def :feature/id string?)
-(s/def :feature/type #{"Feature"})
-(s/def ::feature
-  (s/keys :req-un [::properties]
-          :opt-un [:feature/id :feature/type]))
-(s/def :root/type #{"FeatureCollection"})
-(s/def ::totalFeatures pos-int?)
-(s/def ::features (s/coll-of ::feature))
-(s/def ::geojson-spec
-  (s/keys :req-un [:root/type ::totalFeatures ::features]))
-
-(when (s/valid? ::geojson-spec result)
-  (notify-of-failure))
+(defn insert-in-db
+  "Straightforward inserting in MongoDB"
+  [data]
+  (doseq [feature-api (:features data)]
+    (m/with-mongo db
+      (let [props (:properties feature-api)
+            coords (:coordinates (:geometry feature-api))]
+        (m/insert! :bikecounter
+                   {:device_name (:device_name props)
+                    :road_en (:road_en props)
+                    :coordinates coords
+                    :hour_cnt (:hour_cnt props)
+                    :day_cnt (:day_cnt props)
+                    :year_cnt (:year_cnt props)
+                    :cnt_time (t/local-date-time (t/zoned-date-time (or (:cnt_time props) 2010)))
+                    :updatedAt (t/local-date-time)})))))
 
 ;; (def bikers-currently {:ts      (tf/parse (tf/formatter :date-time-no-ms)
 ;;                                           (raw-data "cnt_time"))
@@ -72,7 +44,7 @@
 ;; (defn insert-record-policy
 ;;   "Very simple, if record does not exist already, insert it, otherwise
 ;;   do nothing. Times are in UTC (timezone +0). Brussels is CEST (+2) in
-;;   summer and CET (+1) in november etc."
+;;   summer and CET (+1) as from november etc."
 ;;   []
 ;;   (let [last-record  (select-last-record db)
 ;;         last-time    (:ts last-record)
@@ -104,6 +76,10 @@
 
 
 
-;; (defn -main
-;;   [& arg]
-;;   (insert-record-policy)))
+(defn -main
+  [& arg]
+  (let [data (fetch-data)]
+    (if (not (s/valid? :bikecounter.spec/geojson data))
+      (notify (str "GeoJSON resource does not conform to spec\n\n"
+                   (s/explain-str :bikecounter.spec/geojson data)))
+      (insert-in-db data))))
