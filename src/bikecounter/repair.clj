@@ -1,16 +1,6 @@
 ;; (ns bikecounter.repair
-;;   (:require [clojure.java.jdbc :as j]
-;;             [environ.core :refer [env]]
-;;             [hugsql.core :as hugsql]
-;;             [bikecounter.common :refer [db]]))
-
-;; ;; The path is relative to the classpath (not proj dir!), so "src" is
-;; ;; not included in the path.  The same would apply if the sql was
-;; ;; under "resources/..."  Also, notice the under_scored path compliant
-;; ;; with Clojure file paths for hyphenated namespaces
-;; (hugsql/def-db-fns "sql/queries.sql")
-;; (hugsql/def-sqlvec-fns "sql/queries.sql")
-
+;;   (:require [environ.core :refer [env]]
+;;             [bikecounter.common :refer [conn]]))
 
 ;; (defn repair-null-records-normal-fix
 ;;   "Usual procedure. The actual number of bikes that hour will be the
@@ -47,7 +37,7 @@
 ;;       (repair-null-records-normal-fix arecord))))  ;every other hour with 59 minutes
 
 
-;; (defn -main
-;;   "-main for lein run"
+;; (defn -handler
+;;   ""
 ;;   []
 ;;   (repair-null-records))

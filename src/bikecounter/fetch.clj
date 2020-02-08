@@ -11,7 +11,9 @@
             [sendgrid.core :as sg]
             [somnium.congomongo :as m]))
 
+
 (def api-url "http://data-mobility.brussels/geoserver/bm_bike/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=bm_bike:rt_counting&outputFormat=json")
+
 
 (def data-shape
   "A schema for the Brussels Open Data API"
