@@ -1,7 +1,7 @@
 (ns bikecounter.fetch
   (:gen-class
    :methods [^:static [handler [Object] Object]])
-  (:require [bikecounter.common :refer [conn sg-api-token]]
+  (:require [bikecounter.common :refer [conn lambda_default sg-api-token]]
             [cheshire.core :as json]
             [clj-http.client :as client]
             [environ.core :refer [env]]
@@ -11,7 +11,6 @@
             [sendgrid.core :as sg]
             [somnium.congomongo :as m]))
 
-
 (def api-url "http://data-mobility.brussels/geoserver/bm_bike/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=bm_bike:rt_counting&outputFormat=json")
 
 
@@ -19,6 +18,9 @@
   "A schema for the Brussels Open Data API"
   {:type s/Str
    :totalFeatures s/Int
+   :numberMatched s/Int
+   :numberReturned s/Int
+   :timeStamp s/Str
    :features [{:type s/Str
                :id s/Str
                :geometry {:type s/Str
@@ -38,8 +40,8 @@
                             :hour_cnt (s/maybe s/Int)
                             :day_cnt (s/maybe s/Int)
                             :year_cnt (s/maybe s/Int)
-                            :cnt_time (s/maybe s/Str)
-                            :bbox [s/Num]}}]
+                            :cnt_time (s/maybe s/Str)}
+               :bbox [s/Num]}]
    :crs {:type s/Str
          :properties {:name s/Str}}
    :bbox [s/Num]})
@@ -75,14 +77,26 @@
       (f/fail "Data is not valid ! Schema returned error: %s" e))))
 
 
+(defn not-recently-notified
+  "Returns true if the notification recipient hasn't received a
+  notification in the the past hours hours"
+  [hours]
+  (let [last-notified (:last-notification(m/with-mongo conn
+                                           (m/fetch-one :notification)))]
+    (< hours (t/as (t/duration last-notified (t/instant)) :hours))))
+
+
 (defn not-ok
   "Send a notification email, prints the error and crash the process"
   [error]
-  (sg/send-email {:api-token sg-api-token
-                  :from "notification@bikecounter.io"
-                  :to (str (env :notification-recipient))
-                  :subject "Bikecounter error"
-                  :message (f/message error)})
+  (when (not-recently-notified 1)
+    (sg/send-email {:api-token sg-api-token
+                    :from "notification@bikecounter.io"
+                    :to (str (env :notification-recipient))
+                    :subject "Bikecounter error"
+                    :message (f/message error)})
+    (m/with-mongo conn
+      (m/update! :notification {:only-one true} {:$set {:last-notification (t/instant)}})))
   (println (f/message error))
   (throw (Exception. "Error")))
 
@@ -94,46 +108,6 @@
   (doseq [feature (:features data)]
     (m/with-mongo conn
       (m/insert! (keyword (:device_name (:properties feature))) feature))))
-
-
-;; (def bikers-currently {:ts      (tf/parse (tf/formatter :date-time-no-ms)
-;;                                           (raw-data "cnt_time"))
-;;                        :today   (raw-data "day_cnt")
-;;                        :parcial (raw-data "hour_cnt")})
-
-
-;; (defn insert-record-policy
-;;   "Very simple, if record does not exist already, insert it, otherwise
-;;   do nothing. Times are in UTC (timezone +0). Brussels is CEST (+2) in
-;;   summer and CET (+1) as from november etc."
-;;   []
-;;   (let [last-record  (select-last-record conn)
-;;         last-time    (:ts last-record)
-;;         current-time (bikers-currently :ts)]
-;;     ;; Insert normal records...
-;;     (if (or (nil? last-time)
-;;             (not= last-time current-time))
-;;       (add-record conn bikers-currently)
-;;       "Nothing to do")
-;;     ;; Amend hourly. At midnight the counter is reset to 0 so those
-;;     ;; bikers are lost, we can only update the column with the last value
-;;     ;; seen (first clause). Also, there is a small correction to account
-;;     ;; for bikers who pass in the last 5 mins of the hour - second
-;;     ;; clause.
-;;     (when (some? last-time)              ;database is not empty
-;;       (def realvalue (cond
-;;                        ;; First clause. Order is important
-;;                        (and (= (.getHourOfDay last-time) 22)
-;;                             (= (.getHourOfDay current-time) 23))
-;;                        (:parcial last-record)
-;;                        ;; Second clause
-;;                        (= (inc (.getHourOfDay last-time)) (.getHourOfDay current-time)) ;its the next hour
-;;                        (-> (:today bikers-currently)
-;;                            (- ,,, (:today last-record) (:parcial bikers-currently))
-;;                            (+ ,,, (:parcial last-record)))))
-
-;;       (amend-hourly conn {:id       (:id last-record)
-;;                         :thishour realvalue}))))
 
 
 (defn process
@@ -149,13 +123,6 @@
     (if (f/failed? result)
       (not-ok result)
       result)))
-
-
-(def lambda_default
-  "AWS Lambda stuff... It is the answer template for AWS API Gateway"
-  {"isBase64Encoded" false
-   "headers" {}
-   "statusCode" 200})
 
 
 (defn -handler
