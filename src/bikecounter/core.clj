@@ -3,7 +3,6 @@
    :methods [^:static [handler [Object] Object]])
   (:require [bikecounter.common :refer [conn lambda_default]]
             [cheshire.core :as json]
-            [environ.core :refer [env]]
             [java-time :as t]
             [somnium.congomongo :as m]))
 
