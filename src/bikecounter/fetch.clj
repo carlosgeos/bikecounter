@@ -37,6 +37,8 @@
                             :lane_schema s/Str
                             :basic_schema s/Str
                             :detailed_schema s/Str
+                            :pic_a (s/maybe s/Str)
+                            :pic_b (s/maybe s/Str)
                             :hour_cnt (s/maybe s/Int)
                             :day_cnt (s/maybe s/Int)
                             :year_cnt (s/maybe s/Int)
