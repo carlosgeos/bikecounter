@@ -3,13 +3,15 @@
    :methods [^:static [handler [Object] Object]])
   (:require [bikecounter.common :refer [conn lambda_default sg-api-token]]
             [cheshire.core :as json]
-            [clj-http.client :as client]
+            [clj-http.client :as http]
+            [clojure.contrib.humanize :as human]
             [environ.core :refer [env]]
             [failjure.core :as f]
             [java-time :as t]
             [schema.core :as s]
             [sendgrid.core :as sg]
-            [somnium.congomongo :as m]))
+            [somnium.congomongo :as m]
+            [taoensso.timbre :as log]))
 
 (def api-url "http://data-mobility.brussels/geoserver/bm_bike/wfs?service=wfs&version=1.1.0&request=GetFeature&typeName=bm_bike:rt_counting&outputFormat=json")
 
@@ -49,11 +51,19 @@
    :bbox [s/Num]})
 
 
-(defn fetch-api
+(defn fetch-api-results
   "Calls the external resource and returns the result. If an Exception
   occurs, Failjure lib catches it and treats it as a failure"
   [url]
-  (f/try* (:body (client/get url {:as :json}))))
+  (log/info "Fetching" url)
+  (let [response (f/try* (http/get url {:as :json}))
+        headers (:headers response)
+        size (Integer/parseInt (get headers "Content-Length"))
+        response-time (:request-time response)
+        payload (:body response)]
+    (log/info "Received" (human/filesize size :binary true))
+    (log/info "Response time" response-time "ms")
+    payload))
 
 
 (defn add-timestamps
@@ -73,6 +83,7 @@
 (defn validate-data
   "Makes sure Brussels Open Data have not changed their API"
   [data]
+  (log/info "Validating schema...")
   (try
     (s/validate data-shape data)
     (catch Exception e
@@ -99,7 +110,7 @@
                     :message (f/message error)})
     (m/with-mongo conn
       (m/update! :notification {:only-one true} {:$set {:last-notification (t/instant)}})))
-  (println (f/message error))
+  (log/error (f/message error))
   (throw (Exception. "Error")))
 
 
@@ -107,7 +118,9 @@
   "Saves the data fetched from the API to Mongo. feature is a map
   containing info about the counting device (times, state, name, etc)"
   [data]
+  (log/info "Writing data to MongoDB...")
   (doseq [feature (:features data)]
+    (log/info "Writing device" (:device_name (:properties feature)))
     (m/with-mongo conn
       (m/insert! (keyword (:device_name (:properties feature))) feature))))
 
@@ -118,7 +131,7 @@
   shotcuts to the not-ok procedure (failjure feature)"
   [api-url]
   (let [result (f/ok->> api-url
-                        (fetch-api)
+                        (fetch-api-results)
                         (validate-data)
                         (transform-data)
                         (save-data))]
@@ -132,4 +145,5 @@
   are all the different URL endpoints from which to fetch data"
   [req]
   (process api-url)
+  (log/info "Done.")
   (merge lambda_default {"body" (json/generate-string "OK")}))
